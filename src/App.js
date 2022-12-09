@@ -1,49 +1,77 @@
 // src/App.jsx
 
 import React, { useEffect, useState } from "react";
-import axios from "axios"; // axios import 합니다.
+import axios from "axios";
 
 const App = () => {
-  // 새롭게 생성하는 todo를 관리하는 state
   const [todo, setTodo] = useState({
     title: "",
   });
-
   const [todos, setTodos] = useState(null);
+
+  // patch에서 사용할 id, 수정값의 state를 추가
+  const [targetId, setTargetId] = useState(null);
+  const [editTodo, setEditTodo] = useState({
+    title: "",
+  });
 
   const fetchTodos = async () => {
     const { data } = await axios.get("http://localhost:3001/todos");
     setTodos(data);
   };
 
-  const onSubmitHandler = async (todo) => {
-    //1.  이때 todos는 [{투두하나}]임
-    await axios.post("http://localhost:3001/todos", todo); // 이때 서버에 있는 todos도 [{투두하나}]임
-
-    // 근데 여기서 서버 요청이 끝나고 서버는 [{투두가},{두개임}]
-
-    setTodos([...todos, todo]); //2. <-- 만약 이게 없다면, go to useEffect
-    //4. 새로고침해서 진짜 현재 서버 데이터를 받아오기전에 상태를 똑같이 동기시켜줌
-    //5. 어떻게보면 유저한테 서버에서 새로 받아온것처럼 속이는거지
+  const onSubmitHandler = (todo) => {
+    axios.post("http://localhost:3001/todos", todo);
   };
 
-  const onClickDeleteButtonHandler =  (todoId) => {
-    axios.delete(`http://localhost:3001/todos/${todoId}`)
-  }
+  const onClickDeleteButtonHandler = (todoId) => {
+    axios.delete(`http://localhost:3001/todos/${todoId}`);
+  };
+
+  // 수정버튼 이벤트 핸들러 추가 👇
+  const onClickEditButtonHandler = (todoId, edit) => {
+    axios.patch(`http://localhost:3001/todos/${todoId}`, edit);
+  };
 
   useEffect(() => {
-    fetchTodos(); //3. 새로고침해서 여기를 다시 실행해줘야 서버값이 새로 들어옴 e.g) [{투두가},{두개임}]
+    fetchTodos();
   }, []);
 
   return (
     <>
       <form
         onSubmit={(e) => {
-          // 👇 submit했을 때 브라우저의 새로고침을 방지합니다.
           e.preventDefault();
           onSubmitHandler(todo);
         }}
       >
+        {/* 👇 수정기능에 필요한 id, 수정값 input2개와 수정하기 버튼을 추가 */}
+        <div>
+          <input
+            type="text"
+            placeholder="수정하고싶은 Todo ID"
+            onChange={(ev) => {
+              setTargetId(ev.target.value);
+            }}
+          />
+          <input
+            type="text"
+            placeholder="수정값 입력"
+            onChange={(ev) => {
+              setEditTodo({
+                ...editTodo,
+                title: ev.target.value,
+              });
+            }}
+          />
+          <button
+            // type='button' 을 추가해야 form의 영향에서 벗어남
+            type="button"
+            onClick={() => onClickEditButtonHandler(targetId, editTodo)}
+          >
+            수정하기
+          </button>
+        </div>
         <input
           type="text"
           onChange={(ev) => {
@@ -58,8 +86,16 @@ const App = () => {
       </form>
       <div>
         {todos?.map((todo) => (
-          <div key={todo.id}>{todo.title}
-          <button type ="button" onClick={()=> onClickDeleteButtonHandler(todo.id)}>삭제하기</button></div>
+          <div key={todo.id}>
+            {/* todo의 아이디를 화면에 표시 */}
+            {todo.id} :{todo.title}
+            <button
+              type="button"
+              onClick={() => onClickDeleteButtonHandler(todo.id)}
+            >
+              삭제하기
+            </button>
+          </div>
         ))}
       </div>
     </>
