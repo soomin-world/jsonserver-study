@@ -12,3 +12,7 @@
 - POST : read
 - PATCH :update
 - DELETE : delete
+
+## redux 미들웨어
+
+- action과 reducer사이에 작업을 넣을 수 있음.
