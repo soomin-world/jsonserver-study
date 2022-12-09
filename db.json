@@ -1,9 +1,8 @@
 {
   "todos": [
     {
-      "id": 1,
-      "title": "json-server",
-      "content": "json-server를 배워봅시다."
+      "title": "react",
+      "id": 7
     }
   ]
 }
